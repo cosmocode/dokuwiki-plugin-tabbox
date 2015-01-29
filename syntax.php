@@ -7,13 +7,13 @@
  */
 
 // must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
+if(!defined('DOKU_INC')) die();
 
 class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
 
-    protected $tabs = array();
-    protected $tabids = array();
-    protected $intab = false;
+    protected $tabs         = array();
+    protected $tabids       = array();
+    protected $intab        = false;
     protected $original_doc = '';
 
     /**
@@ -22,12 +22,14 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
     public function getType() {
         return 'formatting';
     }
+
     /**
      * @return string Paragraph type
      */
     public function getPType() {
-        return 'stack';
+        return 'block';
     }
+
     /**
      * @return int Sort order - Low numbers go before high numbers
      */
@@ -48,7 +50,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * @param string $mode Parser mode
      */
     public function connectTo($mode) {
-        $this->Lexer->addEntryPattern('<tabbox.*?>(?=.*?</tabbox>)',$mode,'plugin_tabbox');
+        $this->Lexer->addEntryPattern('<tabbox.*?>(?=.*?</tabbox>)', $mode, 'plugin_tabbox');
     }
 
     public function postConnect() {
@@ -59,51 +61,49 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * Handle matches of the tabbox syntax
      *
      * @param string $match The match of the syntax
-     * @param int    $state The state of the handler
-     * @param int    $pos The position in the document
-     * @param Doku_Handler    $handler The handler
+     * @param int $state The state of the handler
+     * @param int $pos The position in the document
+     * @param Doku_Handler $handler The handler
      * @return array Data for the renderer
      */
-    public function handle($match, $state, $pos, Doku_Handler &$handler){
+    public function handle($match, $state, $pos, Doku_Handler &$handler) {
 
-        if($state == DOKU_LEXER_UNMATCHED && substr($match, 0, 7) == '<tabbox'){
+        if($state == DOKU_LEXER_UNMATCHED && substr($match, 0, 7) == '<tabbox') {
             $state = DOKU_LEXER_ENTER;
         }
 
-        return array($state, $match);
+        return array($state, $match, $pos);
     }
-
-
 
     /**
      * Render xhtml output or metadata
      *
-     * @param string         $mode      Renderer mode (supported modes: xhtml)
-     * @param Doku_Renderer  $renderer  The renderer
-     * @param array          $data      The data from the handler() function
+     * @param string $mode Renderer mode (supported modes: xhtml)
+     * @param Doku_Renderer $renderer The renderer
+     * @param array $data The data from the handler() function
      * @return bool If rendering was successful.
      */
     public function render($mode, Doku_Renderer &$renderer, $data) {
         if($mode != 'xhtml') return false;
 
-        list($state, $match) = $data;
+        list($state, $match, $pos) = $data;
 
-        switch ($state) {
+        switch($state) {
             case DOKU_LEXER_ENTER:
                 if(!$this->intab) {
                     // this is the first tab
                     $this->_openBox($renderer);
                 } else {
                     // close last tab
-                    $this->_closeTab($renderer);
+                    $this->_closeTab($renderer, $pos - 1);
                 }
                 // open new tab
-                $this->_openTab($renderer, substr($match, 7, -1));
+                $this->_openTab($renderer, substr($match, 7, -1), $pos + strlen($match) + 1 );
                 break;
             case DOKU_LEXER_EXIT:
                 if($this->intab) {
                     // close last tab
-                    $this->_closeTab($renderer);
+                    $this->_closeTab($renderer, $pos - 1);
                 }
                 $this->_closeBox($renderer);
                 break;
@@ -116,26 +116,26 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
     }
 
 
-    protected function _fixParagraphs($string) {
-        $string = preg_replace('/^\\s*<\/p>/', '', $string);
-        $string = preg_replace('/<p>\\s*$/', '', $string);
-        return $string;
-    }
 
     /**
      * Open a new tab with the given name
      *
      * @param Doku_Renderer_xhtml $R
      * @param string $name
+     * @param int $pos Byte position of start of tab content
      */
-    protected function _openTab(Doku_Renderer_xhtml $R, $name) {
-        $name = trim($name);
-        $next = count($this->tabs);
-        $this->tabs[$next]['id'] =  sectionID('tab__'.$name, $this->tabids);
-        $this->tabs[$next]['name'] = $name;
-        $this->tabs[$next]['data'] = '';
+    protected function _openTab(Doku_Renderer_xhtml $R, $name, $pos) {
+        $name  = trim($name);
+        $tabid = 'tab__' . sectionID($name, $this->tabids);
+        // use one smaller headline than current section for the tabs
+        $level = $this->_getProtected($R, 'lastlevel') + 1;
+        if($level > 5) $level = 5;
 
-        $R->doc =& $this->tabs[$next]['data']; // write content to this tab now
+        // write the header
+        $R->doc .= '<div class="tabboxtab" id="tab_'.$tabid.'">'.DOKU_LF;
+        $R->doc .= DOKU_LF . '<h' . $level . ' class="hl ' . $R->startSectionEdit($pos, 'section', $name) . '" id="' . $tabid . '">';
+        $R->doc .= $R->_xmlEntities($name);
+        $R->doc .= "</h$level>" . DOKU_LF;
 
         $this->intab = true;
     }
@@ -144,13 +144,12 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * Close the current tab
      *
      * @param Doku_Renderer_xhtml $R
+     * @param int $pos Byte position of end of tab content
      */
-    protected function _closeTab(Doku_Renderer_xhtml $R) {
-        $cur = count($this->tabs) - 1;
-        $this->tabs[$cur]['data'] = $this->_fixParagraphs($this->tabs[$cur]['data']);
+    protected function _closeTab(Doku_Renderer_xhtml $R, $pos) {
+        $R->finishSectionEdit($pos);
+        $R->doc .= DOKU_LF.'</div>'.DOKU_LF;
         $this->intab = false;
-
-        $R->doc =& $this->original_doc; // restore original doc
     }
 
     /**
@@ -159,36 +158,33 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * @param Doku_Renderer_xhtml $R
      */
     protected function _openBox(Doku_Renderer_xhtml $R) {
-        $this->tabs = array();
-        $this->tabids = array();
-        $this->original_doc =& $R->doc; // save current content
+        $R->doc .= '<div class="plugin_tabbox">' . DOKU_LF;
+
     }
 
     /**
-     * Close the tab box and write the tabs to the output
+     * Close the tab box
      *
      * @param Doku_Renderer_xhtml $R
      */
     protected function _closeBox(Doku_Renderer_xhtml $R) {
-        $R->doc .= '<div class="plugin_tabbox">';
-
-        $R->doc .= '<ul class="tabs">';
-        foreach($this->tabs as $tab) {
-            $R->doc .= '<li>';
-            $R->doc .= '<a href="#'.$tab['id'].'">'.hsc($tab['name']).'</a>';
-            $R->doc .= '</li>';
-        }
-        $R->doc .= '</ul>';
-
-        foreach($this->tabs as $tab) {
-            $R->doc .= '<div class="tab" id="'.$tab['id'].'">';
-            $R->doc .= $tab['data'];
-            $R->doc .= '</div>';
-        }
-
-        $R->doc .= '</div>';
+        $R->doc .= '</div>' . DOKU_LF;
     }
 
+    /**
+     * Get the value of a protected member
+     *
+     * @author Jan Turoň
+     * @link http://stackoverflow.com/a/27754169/172068
+     * @param $obj
+     * @param $name
+     * @return mixed
+     */
+    protected function _getProtected($obj, $name) {
+        $array  = (array) $obj;
+        $prefix = chr(0) . '*' . chr(0);
+        return $array[$prefix . $name];
+    }
 
 }
 
