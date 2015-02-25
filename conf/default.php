@@ -5,4 +5,4 @@
  * @author Andreas Gohr <dokuwiki@cosmocode.de>
  */
 
-//$conf['fixme']    = 'FIXME';
+$conf['tabs']    = 'Tab 1, Tab 2, Tab 3';

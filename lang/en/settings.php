@@ -6,7 +6,7 @@
  */
 
 // keys need to match the config setting name
-// $lang['fixme'] = 'FIXME';
+$lang['tabs'] = 'Default tab names for the toolbar (comma-separated)';
 
 
 

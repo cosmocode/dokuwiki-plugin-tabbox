@@ -6,5 +6,5 @@
  */
 
 
-//$meta['fixme'] = array('string');
+$meta['tabs'] = array('string');
 
