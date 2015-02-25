@@ -16,6 +16,11 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
     protected $intab        = false;
     protected $original_doc = '';
 
+    function accepts($mode) {
+        if($mode == 'plugin_tabbox') return true;
+        return parent::accepts($mode);
+    }
+
     /**
      * @return string Syntax mode type
      */
@@ -27,7 +32,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * @return string Paragraph type
      */
     public function getPType() {
-        return 'block';
+        return 'stack';
     }
 
     /**
@@ -54,6 +59,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
     }
 
     public function postConnect() {
+
         $this->Lexer->addExitPattern('</tabbox>', 'plugin_tabbox');
     }
 
@@ -67,11 +73,6 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * @return array Data for the renderer
      */
     public function handle($match, $state, $pos, Doku_Handler &$handler) {
-
-        if($state == DOKU_LEXER_UNMATCHED && substr($match, 0, 7) == '<tabbox') {
-            $state = DOKU_LEXER_ENTER;
-        }
-
         return array($state, $match, $pos);
     }
 
@@ -87,6 +88,8 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
         if($mode != 'xhtml') return false;
 
         list($state, $match, $pos) = $data;
+
+
 
         switch($state) {
             case DOKU_LEXER_ENTER:
@@ -133,7 +136,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
 
         // write the header
         $R->doc .= '<div class="tabboxtab" id="tab_'.$tabid.'">'.DOKU_LF;
-        $R->doc .= DOKU_LF . '<h' . $level . ' class="hl ' . $R->startSectionEdit($pos, 'section', $name) . '" id="' . $tabid . '">';
+        $R->doc .= DOKU_LF . '<h' . $level . ' class="hl ' /* . $R->startSectionEdit($pos, 'section', $name)*/ . '" id="' . $tabid . '">';
         $R->doc .= $R->_xmlEntities($name);
         $R->doc .= "</h$level>" . DOKU_LF;
 
@@ -147,7 +150,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * @param int $pos Byte position of end of tab content
      */
     protected function _closeTab(Doku_Renderer_xhtml $R, $pos) {
-        $R->finishSectionEdit($pos);
+        /*$R->finishSectionEdit($pos);*/
         $R->doc .= DOKU_LF.'</div>'.DOKU_LF;
         $this->intab = false;
     }
@@ -169,6 +172,11 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      */
     protected function _closeBox(Doku_Renderer_xhtml $R) {
         $R->doc .= '</div>' . DOKU_LF;
+
+        dbg($R->doc);
+
+        //$R->doc = preg_replace('/<p>\s*<\/p>/m', '', $R->doc);
+
     }
 
     /**
