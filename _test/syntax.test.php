@@ -16,10 +16,10 @@ class syntax_plugin_tabbox_test extends DokuWikiTest {
     public function test_instructions() {
 
 
-        $input  = '<tabbox box1>'.NL;
-        $input .= 'content1'.NL;
-        $input .= '<tabbox box2>'.NL;
-        $input .= 'content2'.NL;
+        $input  = '<tabbox box1>'.NL.NL;
+        $input .= 'content1'.NL.NL;
+        $input .= '<tabbox box2>'.NL.NL;
+        $input .= 'content2'.NL.NL;
         $input .= '</tabbox>'.NL;
 
         print_r(p_get_instructions($input));
