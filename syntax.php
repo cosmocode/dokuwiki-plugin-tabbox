@@ -172,11 +172,6 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      */
     protected function _closeBox(Doku_Renderer_xhtml $R) {
         $R->doc .= '</div>' . DOKU_LF;
-
-        dbg($R->doc);
-
-        //$R->doc = preg_replace('/<p>\s*<\/p>/m', '', $R->doc);
-
     }
 
     /**
