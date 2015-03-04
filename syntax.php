@@ -138,7 +138,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
 
         // write the header
         $R->doc .= '<div class="tabboxtab" id="tab_'.$tabid.'">'.DOKU_LF;
-        $R->doc .= DOKU_LF . '<h' . $level . ' class="hl ' /* . $R->startSectionEdit($pos, 'section', $name)*/ . '" id="' . $tabid . '">';
+        $R->doc .= DOKU_LF . '<h' . $level . ' class="hl ' . $R->startSectionEdit($pos, 'section', $name) . '" id="' . $tabid . '">';
         $R->doc .= $R->_xmlEntities($name);
         $R->doc .= "</h$level>" . DOKU_LF;
 
@@ -152,7 +152,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * @param int $pos Byte position of end of tab content
      */
     protected function _closeTab(Doku_Renderer_xhtml $R, $pos) {
-        /*$R->finishSectionEdit($pos);*/
+        $R->finishSectionEdit($pos);
         $R->doc .= DOKU_LF.'</div>'.DOKU_LF;
         $this->intab = false;
     }
