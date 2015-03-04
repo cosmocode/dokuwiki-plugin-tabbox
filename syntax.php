@@ -56,6 +56,7 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      */
     public function connectTo($mode) {
         $this->Lexer->addEntryPattern('<tabbox.*?>(?=.*?</tabbox>)', $mode, 'plugin_tabbox');
+        $this->Lexer->addSpecialPattern('<tabbox.*?>(?=.*?</tabbox>)', 'plugin_tabbox', 'plugin_tabbox');
     }
 
     public function postConnect() {
@@ -73,6 +74,9 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
      * @return array Data for the renderer
      */
     public function handle($match, $state, $pos, Doku_Handler &$handler) {
+        // we treat intermediate matches like entries in rendering
+        if($state == DOKU_LEXER_SPECIAL) $state = DOKU_LEXER_ENTER;
+
         return array($state, $match, $pos);
     }
 
@@ -88,8 +92,6 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
         if($mode != 'xhtml') return false;
 
         list($state, $match, $pos) = $data;
-
-
 
         switch($state) {
             case DOKU_LEXER_ENTER:
