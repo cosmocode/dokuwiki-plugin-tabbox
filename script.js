@@ -58,9 +58,9 @@ jQuery(function(){
         if(DokuCookie.getValue('tabbox')) {
             tabboxopen($box, DokuCookie.getValue('tabbox'));
         }
-        if(window.location.hash) {
-            tabboxopen($box, window.location.hash.substring(1));
-        }
+
+        tabboxopen($box, window.location.hash.substring(1));
+
     });
 
 });
