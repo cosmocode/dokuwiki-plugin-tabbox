@@ -138,11 +138,12 @@ class syntax_plugin_tabbox extends DokuWiki_Syntax_Plugin {
 
         // write the header
         $R->doc .= '<div class="tabboxtab" id="tab_'.$tabid.'">'.DOKU_LF;
-        if (defined('SEC_EDIT_PATTERN')) { // for DokuWiki Greebo and more recent versions
+        if (defined('SEC_EDIT_PATTERN')) { 
+            // for DokuWiki Greebo and more recent versions
             $R->doc .= DOKU_LF . '<h' . $level . ' class="hl '.  $R->startSectionEdit($pos, array('target' => 'section', 'name' => $name)) . '" id="' . $tabid . '">';
-            } else {
+        } else {
             $R->doc .= DOKU_LF . '<h' . $level . ' class="hl '.  $R->startSectionEdit($pos, 'section', $name)  . '" id="' . $tabid . '">';
-            }
+        }
         $R->doc .= $R->_xmlEntities($name);
         $R->doc .= "</h$level>" . DOKU_LF;
 
